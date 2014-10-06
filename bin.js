@@ -9,8 +9,11 @@ var argv = minimist(process.argv.slice(2), {
   alias: {
     tty:'t',
     remove:'r',
-    version:'v',
-    host:'h'
+    host:'h',
+    net:'n',
+    port:'p',
+    env:'e',
+    volume:'v'
   },
   default: {
     tty: process.stdin.isTTY && process.stdout.isTTY,
@@ -24,6 +27,39 @@ if (!argv._.length) {
   console.error(fs.readFileSync(require.resolve('./help.txt'), 'utf-8'))
   process.exit(1)
 }
+
+var parsePorts = function() {
+  if (!argv.port) return null
+  return [].concat(argv.port).reduce(function(ports, p) {
+    var parts = p.toString().split(':')
+    ports[parts[0]] = parts[1] || parts[0]
+    return ports
+  }, {})
+}
+
+var parseEnv = function() {
+  if (!argv.env) return null
+  return [].concat(argv.env).reduce(function(env, e) {
+    e = e.toString()
+    var i = e.indexOf('=')
+    if (i === -1) return env
+    env[e.slice(0, i)] = e.slice(i+1).replace(/^["']|["']$/, '')
+    return env
+  }, {})
+}
+
+var parseVolumes = function() {
+  if (!argv.volume) return null
+  return [].concat(argv.volume).reduce(function(volumes, v) {
+    var parts = v.split(':')
+    volumes[parts[0]] = parts[1] || parts[0]
+    return volumes
+  }, {})
+}
+
+argv.ports = parsePorts()
+argv.env = parseEnv()
+argv.volumes = parseVolumes()
 
 var image = argv._[0]
 var child = run(image, argv)

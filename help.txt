@@ -1,6 +1,10 @@
 Usage: docker-run [image] [options]
 
   --host,    -H   [docker-host]
-  --version, -v
+  --env,     -e   [NAME=value]
+  --volume,  -v   [/container:/host]
+  --port,    -p   [container:host]
+  --net,     -n   [host|bridge]
   --tty,     -t
-  --no-rm
+  --version
+  --no-remove

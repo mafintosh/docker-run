@@ -14,6 +14,50 @@ var run = function(image, opts) {
   var that = new events.EventEmitter()
   var tty = !!opts.tty
 
+  var sopts = {
+    NetworkMode: opts.net === 'auto' ? (opts.ports ? 'bridge' : 'host') : opts.net,
+    PortBindings: {},
+    Binds: []
+  }
+
+  var copts = {
+    AttachStdin: !opts.fork,
+    AttachStdout: !opts.fork,
+    AttachStderr: !opts.fork,
+    OpenStdin: !opts.fork,
+    StdinOnce: !opts.fork,
+    Tty: tty,
+    Image: image,
+    ExposedPorts: {},
+    Env: [],
+    Volumes: {}
+  }
+
+  if (opts.dns) sopts.Dns = [].concat(opts.dns)
+
+  if (opts.ports) {
+    Object.keys(opts.ports).forEach(function(from) {
+      var to = opts.ports[from]
+      if (!/\//.test(from)) from += '/tcp'
+      copts.ExposedPorts[from] = {}
+      sopts.PortBindings[from] = [{HostPort:to+''}]
+    })
+  }
+
+  if (opts.env) {
+    Object.keys(opts.env).forEach(function(name) {
+      copts.Env.push(name+'='+opts.env[name])
+    })
+  }
+
+  if (opts.volumes) {
+    Object.keys(opts.volumes).forEach(function(to) {
+      var from = opts.volumes[to]
+      copts.Volumes[to] = {}
+      sopts.Binds.push(from+':'+to+':rw')
+    })
+  }
+
   that.stdin = opts.fork ? null : through()
   that.stderr = opts.fork ? null : through()
   that.stdout = opts.fork ? null : through()
@@ -43,17 +87,7 @@ var run = function(image, opts) {
 
   var create = function(cb) {
     debug('creating container')
-    request.post('/containers/create', {
-      json: {
-        AttachStdin: true,
-        AttachStdout: true,
-        AttachStderr: true,
-        OpenStdin: true,
-        StdinOnce: true,
-        Tty: tty,
-        Image: image
-      }
-    }, cb)
+    request.post('/containers/create', {json: copts}, cb)
   }
 
   var attach = function(id, cb) {
@@ -103,10 +137,7 @@ var run = function(image, opts) {
 
   var start = function(id, cb) {
     debug('starting %s', id)
-    request.post('/containers/'+id+'/start', {
-      json: true,
-      body: null
-    }, cb)
+    request.post('/containers/'+id+'/start', {json: sopts}, cb)
   }
 
   var wait = function(id, cb) {
@@ -168,6 +199,7 @@ var run = function(image, opts) {
             if (err) return onerror(container.Id, err)
             remove(container.Id, function() {
               that.emit('exit', code)
+              that.emit('close')
             })
           })
 
