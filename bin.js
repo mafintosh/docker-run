@@ -39,5 +39,3 @@ child.on('error', function(err) {
 child.on('exit', function(code) {
   process.exit(code)
 })
-
-  child.destroy()
