@@ -15,6 +15,7 @@ var argv = minimist(process.argv.slice(2), {
     env:'e',
     volume:'v'
   },
+  '--': true,
   default: {
     tty: process.stdin.isTTY && process.stdout.isTTY,
     remove: true,
@@ -57,6 +58,7 @@ var parseVolumes = function() {
   }, {})
 }
 
+argv.argv = argv['--']
 argv.ports = parsePorts()
 argv.env = parseEnv()
 argv.volumes = parseVolumes()
