@@ -14,14 +14,27 @@ var run = function(image, opts) {
   var that = new events.EventEmitter()
   var tty = !!opts.tty
 
-  that.stdin = through()
-  that.stderr = through()
-  that.stdout = through()
+  that.stdin = opts.fork ? null : through()
+  that.stderr = opts.fork ? null : through()
+  that.stdout = opts.fork ? null : through()
+  that.setMaxListeners(0)
+
+  var ready = function(cb) {
+    if (that.id) return cb()
+    that.on('spawn', cb)
+  }
 
   that.destroy =
   that.kill = function() {
-    if (that.id) return stop(that.id, noop)
-    that.on('spawn', that.kill)
+    ready(function() {
+      stop(that.id, noop)
+    })
+  }
+
+  that.resize = function(wid, hei) {
+    ready(function() {
+      resize(that.id, wid, hei, noop)
+    })
   }
 
   var destroy = function(cb) {
@@ -44,6 +57,8 @@ var run = function(image, opts) {
   }
 
   var attach = function(id, cb) {
+    if (opts.fork) return cb()
+
     debug('attaching to stdio for %s', id)
     var stdin = request.post('/containers/'+id+'/attach', {
       qs: {
@@ -65,9 +80,14 @@ var run = function(image, opts) {
 
     if (!stdin._header && stdin._implicitHeader) stdin._implicitHeader()
     if (stdin._send) stdin._send(new Buffer(0))
+
+    stdin.on('finish', function() {
+      stdin.socket.end() // force end
+    })
   }
 
   var remove = function(id, cb) {
+    if (opts.remove === false) return cb()
     debug('removing %s', id)
     request.del('/containers/'+id, cb)
   }
@@ -100,6 +120,23 @@ var run = function(image, opts) {
     })
   }
 
+  var resize = function(id, wid, hei, cb) {
+    debug('resizing %s to %dx%d', id, wid, hei)
+    request.post('/containers/'+id+'/resize', {
+      qs: {
+        h: hei,
+        w: wid
+      },
+      buffer: true,
+      body: null
+    }, cb)
+  }
+
+  var resizeDefault = function(id, cb) {
+    if (opts.width && opts.height) return resize(id, opts.width, opts.height, cb)
+    cb()
+  }
+
   var onerror = function(id, err) {
     debug('%s crashed with error %s', id, err.message)
     that.emit('error', err)
@@ -117,23 +154,25 @@ var run = function(image, opts) {
       start(container.Id, function(err) {
         if (err) return onerror(container.Id, err)
 
-        stdin.on('finish', function() {
-          stdin.socket.end() // force end
-        })
-
-        pump(that.stdin, stdin)
-        pump(stdout, that.stdout)
-        if (stderr) pump(stderr, that.stderr)
-        else that.stderr.end()
-
-        wait(container.Id, function(err, code) {
+        resizeDefault(container.Id, function(err) {
           if (err) return onerror(container.Id, err)
-          remove(container.Id, function() {
-            that.emit('exit', code)
-          })
-        })
 
-        that.emit('spawn', that.id)
+          if (!stdin) return that.emit('spawn', that.id)
+
+          pump(that.stdin, stdin)
+          pump(stdout, that.stdout)
+          if (stderr) pump(stderr, that.stderr)
+          else that.stderr.end()
+
+          wait(container.Id, function(err, code) {
+            if (err) return onerror(container.Id, err)
+            remove(container.Id, function() {
+              that.emit('exit', code)
+            })
+          })
+
+          that.emit('spawn', that.id)
+        })
       })
     })
   })

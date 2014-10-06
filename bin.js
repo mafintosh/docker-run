@@ -13,7 +13,10 @@ var argv = minimist(process.argv.slice(2), {
     host:'h'
   },
   default: {
-    tty: process.stdin.isTTY && process.stdout.isTTY
+    tty: process.stdin.isTTY && process.stdout.isTTY,
+    remove: true,
+    width: process.stdout.columns,
+    height: process.stdout.rows
   }
 })
 
@@ -25,11 +28,17 @@ if (!argv._.length) {
 var image = argv._[0]
 var child = run(image, argv)
 
-if (argv.tty) process.stdin.setRawMode(true)
+if (argv.tty && !argv.fork) process.stdin.setRawMode(true)
 
-process.stdin.pipe(child.stdin)
-child.stdout.pipe(process.stdout)
-child.stderr.pipe(process.stderr)
+if (!argv.fork) {
+  process.stdin.pipe(child.stdin)
+  child.stdout.pipe(process.stdout)
+  child.stderr.pipe(process.stderr)
+}
+
+process.stdout.on('resize', function() {
+  child.resize(process.stdout.columns, process.stdout.rows)
+})
 
 child.on('error', function(err) {
   console.error('Error: %s', err.message)
