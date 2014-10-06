@@ -1,0 +1,6 @@
+Usage: docker-run [image] [options]
+
+  --host,    -H   [docker-host]
+  --version, -v
+  --tty,     -t
+  --no-rm
