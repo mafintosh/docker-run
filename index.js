@@ -82,10 +82,6 @@ var run = function(image, opts) {
     })
   }
 
-  var destroy = function(cb) {
-    destroyed = true
-  }
-
   var create = function(cb) {
     debug('creating container')
     request.post('/containers/create', {json: copts}, cb)

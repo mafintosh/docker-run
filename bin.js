@@ -13,7 +13,8 @@ var argv = minimist(process.argv.slice(2), {
     net:'n',
     port:'p',
     env:'e',
-    volume:'v'
+    volume:'v',
+    dns:'d'
   },
   '--': true,
   default: {
