@@ -70,6 +70,26 @@ Emitted when the container is spawned
 
 Emitted if the container experiences a fatal error
 
+## Command line usage
+
+To install the command line tool do
+
+```
+npm install -g docker-run
+```
+
+And then run
+
+```
+docker-run --help
+```
+
+To view the help. In general to run an image do
+
+```
+docker-run [image]
+```
+
 ## License
 
 MIT
