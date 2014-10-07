@@ -25,9 +25,14 @@ var argv = minimist(process.argv.slice(2), {
   }
 })
 
+if (argv.version) {
+  console.log(require('./package').version)
+  return process.exit()
+}
+
 if (!argv._.length) {
   console.error(fs.readFileSync(require.resolve('./help.txt'), 'utf-8'))
-  process.exit(1)
+  return process.exit(1)
 }
 
 var parsePorts = function() {
