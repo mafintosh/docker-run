@@ -6,6 +6,8 @@ Start a docker image and attach to it
 npm install docker-run
 ```
 
+[There is also a command line tool available](https://github.com/mafintosh/docker-run#command-line-usage)
+
 ## Usage
 
 ``` js
