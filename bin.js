@@ -30,9 +30,9 @@ if (argv.version) {
   return process.exit()
 }
 
-if (!argv._.length) {
+if (!argv._.length || argv.help) {
   console.error(fs.readFileSync(require.resolve('./help.txt'), 'utf-8'))
-  return process.exit(1)
+  return process.exit(argv.help ? 0 : 1)
 }
 
 var parsePorts = function() {
