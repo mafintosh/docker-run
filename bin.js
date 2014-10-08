@@ -92,3 +92,11 @@ child.on('error', function(err) {
 child.on('exit', function(code) {
   process.exit(code)
 })
+
+process.on('SIGINT', function() {
+  child.destroy()
+})
+
+process.on('SIGTERM', function() {
+  child.destroy()
+})
