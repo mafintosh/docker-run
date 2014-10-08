@@ -21,7 +21,7 @@ child.stderr.pipe(process.stderr)
 
 ## API
 
-* `child = run(image, [options])
+* `child = run(image, [options])`
 
 Where options can be
 
