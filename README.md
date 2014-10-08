@@ -40,7 +40,8 @@ Where options can be
   },
   env: {
     FOO: 'bar'      // set env vars
-  }
+  },
+  entrypoint: '/bin/bash' // override entrypoint on container
 }
 ```
 
