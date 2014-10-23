@@ -3,6 +3,7 @@
 var run = require('./')
 var minimist = require('minimist')
 var fs = require('fs')
+var path = require('path')
 
 var argv = minimist(process.argv.slice(2), {
   boolean: ['tty', 'remove', 'version', 'privileged'],
@@ -59,7 +60,7 @@ var parseVolumes = function() {
   if (!argv.volume) return null
   return [].concat(argv.volume).reduce(function(volumes, v) {
     var parts = v.split(':')
-    volumes[parts[0]] = parts[1] || parts[0]
+    volumes[parts[0]] = path.resolve(process.cwd(), parts[1] || parts[0])
     return volumes
   }, {})
 }
