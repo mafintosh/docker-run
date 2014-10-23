@@ -5,7 +5,7 @@ var minimist = require('minimist')
 var fs = require('fs')
 
 var argv = minimist(process.argv.slice(2), {
-  boolean: ['tty', 'remove', 'version'],
+  boolean: ['tty', 'remove', 'version', 'privileged'],
   alias: {
     tty:'t',
     remove:'r',

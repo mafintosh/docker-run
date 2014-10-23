@@ -17,7 +17,8 @@ var run = function(image, opts) {
   var sopts = {
     NetworkMode: opts.net === 'auto' ? (opts.ports ? 'bridge' : 'host') : opts.net,
     PortBindings: {},
-    Binds: []
+    Binds: [],
+    Privileged: !!opts.privileged
   }
 
   var copts = {

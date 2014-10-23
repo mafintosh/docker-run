@@ -10,3 +10,4 @@ Usage: docker-run [image] [options] [-- arg1 arg2 ...]
   --tty,        -t
   --version
   --no-remove
+  --privileged
