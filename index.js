@@ -86,7 +86,9 @@ var run = function(image, opts) {
 
   var create = function(cb) {
     debug('creating container')
-    request.post('/containers/create', {json: copts}, cb)
+    var qs = {}
+    if (opts.name) qs.name = opts.name
+    request.post('/containers/create', {json: copts, qs:qs}, cb)
   }
 
   var attach = function(id, cb) {
