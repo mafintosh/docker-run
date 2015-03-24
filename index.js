@@ -27,7 +27,7 @@ var run = function(image, opts) {
     AttachStderr: !opts.fork,
     OpenStdin: !opts.fork,
     StdinOnce: !opts.fork,
-    Cmd: opts.argv || [],
+    Cmd: opts.argv || ["bash"],
     Tty: tty,
     Image: image,
     ExposedPorts: {},
