@@ -32,10 +32,12 @@
   "author": {
     "name": "Mathias Buus"
   },
+
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mafintosh/docker-run/issues"
   },
+<<<<<<< HEAD
   "homepage": "https://github.com/mafintosh/docker-run",
   "readme": "# docker-run\n\nStart a docker image and attach to it\n\n```\nnpm install docker-run\n```\n\n[There is also a command line tool available](https://github.com/mafintosh/docker-run#command-line-usage)\n\n## Usage\n\n``` js\nvar run = require('docker-run')\n\nvar child = run('mafintosh/dev', {tty:true})\n\nprocess.stdin.setRawMode(true)\nprocess.stdin.pipe(child.stdin)\nchild.stdout.pipe(process.stdout)\nchild.stderr.pipe(process.stderr)\n```\n\n## API\n\n* `child = run(image, [options])`\n\nWhere options can be\n\n``` js\n{\n  net: 'bridge',    // network mode (auto | host | bridge). defaults to bridge\n  tty: true,        // be a tty. defaults to false\n  fork: true,       // fork (do not attach stdio). defaults to false\n  remove: true,     // remove the container on stop. defaults to true\n  dns: ['8.8.8.8'], // set custom dns servers\n  ports: {\n    8080: 8081      // expose container 8080 to host 8081\n  },\n  volumes: {\n    '/root': '/tmp' // expose container /root to host /tmp\n  },\n  env: {\n    FOO: 'bar'      // set env vars\n  },\n  entrypoint: '/bin/bash' // override entrypoint on container\n}\n```\n\n* `child.stdin`, `child.stderr`, `child.stdout`\n\nThe stdio streams for the container. Is `null` if `fork: true`\n\n* `child.destroy()`\n\nDestroy the child container\n\n* `child.resize(wid, hei)`\n\nResize the container pty (if `tty: true`)\n\n## Events\n\n* `child.on('exit', exitCode)`\n\nEmitted when the container exits\n\n* `child.on('spawn', containerId)`\n\nEmitted when the container is spawned\n\n* `child.on('error', error)`\n\nEmitted if the container experiences a fatal error\n\n## Command line usage\n\nTo install the command line tool do\n\n```\nnpm install -g docker-run\n```\n\nAnd then run\n\n```\ndocker-run --help\n```\n\nTo view the help. In general to run an image do\n\n```\ndocker-run [image]\n```\n\n## License\n\nMIT",
   "readmeFilename": "README.md",
@@ -45,4 +47,7 @@
   },
   "_from": "docker-run@^2.0.0",
   "_resolved": "https://registry.npmjs.org/docker-run/-/docker-run-2.0.0.tgz"
+=======
+  "homepage": "https://github.com/mafintosh/docker-run"
+>>>>>>> 798e256aea5bb680b5b8b191c667dffeccd98fd9
 }

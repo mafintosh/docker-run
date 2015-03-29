@@ -257,8 +257,6 @@ var run = function(image, opts) {
             })
         })
     }
-
-
   })
 
   return that
