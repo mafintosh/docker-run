@@ -96,7 +96,10 @@ var run = function(image, opts) {
 
       debug('pulling to stdio for %s', image)
       var stdin = request.post('/images/create?fromImage='+image, {
+          timeout:200,
       }, function(err, response) {
+          if (err) return cb(err)
+          if (tty) return cb(null, stdin, response)
           response.on('error',function(err){
               console.log(err);
           })
@@ -105,8 +108,7 @@ var run = function(image, opts) {
               that.emit('exit', 1024)
               that.emit('close')
           })
-          if (err) return cb(err)
-          if (tty) return cb(null, stdin, response)
+
 
           var parser = response.pipe(raw())
           cb(null, stdin, parser.stdout, parser.stderr)
