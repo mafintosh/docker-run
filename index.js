@@ -38,14 +38,14 @@ var run = function(image, opts) {
   if (opts.dns) sopts.Dns = [].concat(opts.dns)
   if (opts.entrypoint) copts.Entrypoint = [].concat(opts.entrypoint)
 
-  if (opts.ports) {
-    Object.keys(opts.ports).forEach(function(host) {
-      var container = opts.ports[host]
-      if (!/\//.test(container)) container += '/tcp'
-      copts.ExposedPorts[container] = {}
-      sopts.PortBindings[container] = [{HostPort:host+''}]
-    })
-  }
+  //if (opts.ports) {
+  //  Object.keys(opts.ports).forEach(function(host) {
+  //    var container = opts.ports[host]
+  //    if (!/\//.test(container)) container += '/tcp'
+  //    copts.ExposedPorts[container] = {}
+  //    sopts.PortBindings[container] = [{HostPort:host+''}]
+  //  })
+  //}
 
   if (opts.env) {
     Object.keys(opts.env).forEach(function(name) {
@@ -83,7 +83,6 @@ var run = function(image, opts) {
       resize(that.id, wid, hei, noop)
     })
   }
-
   var create = function(cb) {
     debug('creating container')
       console.log(copts);
@@ -99,9 +98,11 @@ var run = function(image, opts) {
       }, function(err, response) {
           response.on('error',function(err){
               console.log(err);
+              that.emit('error',err);
           })
           response.on('end',function(){
               console.log('response end')
+              that.emit('pend')
               that.emit('exit', 1024)
               that.emit('close')
           })
@@ -177,6 +178,10 @@ var run = function(image, opts) {
     })
   }
 
+  var inspect = function(id,cb){
+      debug('inspect %s', id)
+      request.get('/containers/'+id+'/json', {}, cb)
+  }
   var resize = function(id, wid, hei, cb) {
     debug('resizing %s to %dx%d', id, wid, hei)
     request.post('/containers/'+id+'/resize', {
@@ -199,6 +204,73 @@ var run = function(image, opts) {
     that.emit('error', err)
   }
 
+  that.run_create = function(){
+      create(function(err, container) {
+          if (err){
+              if(err.status == 404){
+                  //no such image,so we pull it
+                  pull(function(err, stdin, stdout, stderr) {
+                      if (err){
+                          console.log(err)
+                          return onerror(null, err)
+                      }
+
+                      if (!stdin) return that.emit('spawn', that.id)
+
+                      pump(that.stdin, stdin)
+                      pump(stdout, that.stdout)
+                      if (stderr) pump(stderr, that.stderr)
+                      else that.stderr.end()
+                  })
+              }else{
+                  return onerror(null, err)
+              }
+
+          }else{
+              debug('spawned %s', container.Id)
+              that.id = container.Id
+
+              if(tty){
+                  attach(container.Id, function(err, stdin, stdout, stderr) {
+                      if (err) return onerror(container.Id, err)
+
+                      start(container.Id, function(err) {
+                          if (err) return onerror(container.Id, err)
+
+                          resizeDefault(container.Id, function(err) {
+                              if (err) return onerror(container.Id, err)
+
+                              if (!stdin) return that.emit('spawn', that.id)
+
+                              pump(that.stdin, stdin)
+                              pump(stdout, that.stdout)
+                              if (stderr) pump(stderr, that.stderr)
+                              else that.stderr.end()
+
+                              wait(container.Id, function(err, code) {
+                                  if (err) return onerror(container.Id, err)
+                                  remove(container.Id, function() {
+                                      that.emit('exit', code)
+                                      that.emit('close')
+                                  })
+                              })
+
+                              that.emit('spawn', that.id)
+                          })
+                      })
+                  })
+              }else{
+                  start(container.Id, function(err) {
+                      if (err) return onerror(container.Id, err)
+                      inspect(container.Id,function(err,json){
+                          if (err) return onerror(container.Id, err)
+                          that.emit('json',json)
+                      })
+                  })
+              }
+          }
+      })
+  }
   create(function(err, container) {
     if (err){
         if(err.status == 404){
@@ -208,7 +280,6 @@ var run = function(image, opts) {
                     console.log(err)
                     return onerror(null, err)
                 }
-                if (err) return onerror(container.Id, err)
 
                 if (!stdin) return that.emit('spawn', that.id)
 
@@ -216,9 +287,6 @@ var run = function(image, opts) {
                 pump(stdout, that.stdout)
                 if (stderr) pump(stderr, that.stderr)
                 else that.stderr.end()
-
-
-                that.emit('spawn', that.id)
             })
         }else{
             return onerror(null, err)
@@ -228,34 +296,44 @@ var run = function(image, opts) {
         debug('spawned %s', container.Id)
         that.id = container.Id
 
-        attach(container.Id, function(err, stdin, stdout, stderr) {
-            if (err) return onerror(container.Id, err)
-
-            start(container.Id, function(err) {
+        if(tty){
+            attach(container.Id, function(err, stdin, stdout, stderr) {
                 if (err) return onerror(container.Id, err)
 
-                resizeDefault(container.Id, function(err) {
+                start(container.Id, function(err) {
                     if (err) return onerror(container.Id, err)
 
-                    if (!stdin) return that.emit('spawn', that.id)
-
-                    pump(that.stdin, stdin)
-                    pump(stdout, that.stdout)
-                    if (stderr) pump(stderr, that.stderr)
-                    else that.stderr.end()
-
-                    wait(container.Id, function(err, code) {
+                    resizeDefault(container.Id, function(err) {
                         if (err) return onerror(container.Id, err)
-                        remove(container.Id, function() {
-                            that.emit('exit', code)
-                            that.emit('close')
-                        })
-                    })
 
-                    that.emit('spawn', that.id)
+                        if (!stdin) return that.emit('spawn', that.id)
+
+                        pump(that.stdin, stdin)
+                        pump(stdout, that.stdout)
+                        if (stderr) pump(stderr, that.stderr)
+                        else that.stderr.end()
+
+                        wait(container.Id, function(err, code) {
+                            if (err) return onerror(container.Id, err)
+                            remove(container.Id, function() {
+                                that.emit('exit', code)
+                                that.emit('close')
+                            })
+                        })
+
+                        that.emit('spawn', that.id)
+                    })
                 })
             })
-        })
+        }else{
+            start(container.Id, function(err) {
+                if (err) return onerror(container.Id, err)
+                inspect(container.Id,function(err,json){
+                    if (err) return onerror(container.Id, err)
+                    that.emit('json',json)
+                })
+            })
+        }
     }
   })
 
