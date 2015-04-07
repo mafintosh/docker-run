@@ -118,8 +118,7 @@ var run = function(image, opts) {
                   that.emit('close')
               }
           })
-          if (err) return cb(err)
-          if (tty) return cb(null, stdin, response)
+
 
           var parser = response.pipe(raw())
           cb(null, stdin, parser.stdout, parser.stderr)
