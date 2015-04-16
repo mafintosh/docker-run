@@ -27,6 +27,9 @@ var run = function(image, opts) {
     AttachStderr: !opts.fork,
     OpenStdin: !opts.fork,
     StdinOnce: !opts.fork,
+    Memory:20*1024*1024,
+    MemorySwap:40*1024*1024,
+    CpuShares:512,
     Cmd: opts.argv || ["bash"],
     Tty: tty,
     Image: image,
@@ -57,7 +60,7 @@ var run = function(image, opts) {
     Object.keys(opts.volumes).forEach(function(host) {
       var container = opts.volumes[host]
       copts.Volumes[host] = {}
-      sopts.Binds.push(host+':'+container+':rw')
+      sopts.Binds.push(host+':'+container+':r')
     })
   }
 
