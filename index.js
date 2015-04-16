@@ -38,14 +38,14 @@ var run = function(image, opts) {
   if (opts.dns) sopts.Dns = [].concat(opts.dns)
   if (opts.entrypoint) copts.Entrypoint = [].concat(opts.entrypoint)
 
-  //if (opts.ports) {
-  //  Object.keys(opts.ports).forEach(function(host) {
-  //    var container = opts.ports[host]
-  //    if (!/\//.test(container)) container += '/tcp'
-  //    copts.ExposedPorts[container] = {}
-  //    sopts.PortBindings[container] = [{HostPort:host+''}]
-  //  })
-  //}
+  if (opts.ports) {
+    Object.keys(opts.ports).forEach(function(host) {
+      var container = opts.ports[host]
+      if (!/\//.test(container)) container += '/tcp'
+      copts.ExposedPorts[container] = {}
+      sopts.PortBindings[container] = [{HostPort:host+''}]
+    })
+  }
 
   if (opts.env) {
     Object.keys(opts.env).forEach(function(name) {
@@ -97,31 +97,37 @@ var run = function(image, opts) {
       var stdin = request.post('/images/create?fromImage='+image, {timeout: 20000
       }, function(err, response) {
           var iserror = false
-          if(!tty){
-              response.on('data', function(data){
-                  var resobj = JSON.parse(data.toString())
-                  if(resobj.hasOwnProperty('error')){
-                      iserror = true
-                      that.emit('error',resobj);
-                  }
-              })
-          }
-          response.on('error',function(err){
+          if(err){
               console.log(err);
               that.emit('error',err);
-          })
-          response.on('end',function(){
-              if(iserror == false){
-                  console.log('response end')
-                  that.emit('pend')
-                  that.emit('exit', 1024)
-                  that.emit('close')
+          }else{
+              if(!tty){
+                  response.on('data', function(data){
+                      var resobj = JSON.parse(data.toString())
+                      if(resobj.hasOwnProperty('error')){
+                          iserror = true
+                          that.emit('error',resobj);
+                      }
+                  })
               }
-          })
+              response.on('error',function(err){
+                  console.log(err);
+                  that.emit('error',err);
+              })
+              response.on('end',function(){
+                  if(iserror == false){
+                      console.log('response end')
+                      that.emit('pend')
+                      that.emit('exit', 1024)
+                      that.emit('close')
+                  }
+              })
 
 
-          var parser = response.pipe(raw())
-          cb(null, stdin, parser.stdout, parser.stderr)
+              var parser = response.pipe(raw())
+              cb(null, stdin, parser.stdout, parser.stderr)
+          }
+
       })
 
       if (!stdin._header && stdin._implicitHeader) stdin._implicitHeader()
