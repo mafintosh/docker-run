@@ -113,11 +113,12 @@ var run = function(image, opts) {
               console.log(err);
               that.emit('error',err);
           }else{
-              //if(!tty){
+
                   response.on('data', function(data){
                       var resobj = JSON.parse(data.toString())
                       if(resobj.hasOwnProperty('error')){
                           iserror = true
+
                           that.stdout.write(resobj.error+'\n');
                           that.emit('error',resobj);
                       }else{
@@ -125,7 +126,6 @@ var run = function(image, opts) {
                       }
 
                   })
-              //}
               response.on('error',function(err){
                   console.log(err);
                   that.emit('error',err);
@@ -146,6 +146,7 @@ var run = function(image, opts) {
               //
               //var parser = response.pipe(raw())
               //cb(null, stdin, parser.stdout, parser.stderr)
+
           }
 
       })
