@@ -101,7 +101,6 @@ var run = function(image,opts) {
           timeout: 20000,
           qs:{
               fromImage:image,
-              registry:"docker2.peilong.me:5000",
               repo:"docker2.peilong.me:5000"
           },
           headers: {
