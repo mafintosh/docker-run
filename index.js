@@ -97,7 +97,6 @@ var run = function(image,opts) {
       if (opts.fork) return cb()
 
       debug('pulling to stdio for %s', image)
-      image = 'dasdasd'
       var stdin = request.post('/images/create', {
           timeout: 20000,
           qs:{
