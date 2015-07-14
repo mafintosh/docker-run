@@ -1,6 +1,6 @@
 {
   "name": "docker-run",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Start a docker image and attach to it",
   "main": "index.js",
   "dependencies": {
@@ -9,7 +9,8 @@
     "docker-remote-api": "^4.4.0",
     "pump": "^1.0.0",
     "through2": "^0.6.2",
-    "minimist": "^1.1.0"
+    "minimist": "^1.1.0",
+    "lodash": "^3.9.3"
   },
   "devDependencies": {
     "concat-stream": "^1.4.6",
