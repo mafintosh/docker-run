@@ -1,70 +1,50 @@
-var raw = require('docker-raw-stream')
-var docker = require('docker-remote-api')
-var through = require('through2')
-var pump = require('pump')
-var events = require('events')
-var debug = require('debug')('docker-run')
+//jshint laxcomma: true, node: true, indent: false, camelcase: false, expr: true, newcap: false, quotmark: false
+'use strict';
+var raw = require('docker-raw-stream');
+var docker = require('docker-remote-api');
+var through = require('through2');
+var pump = require('pump');
+var events = require('events');
+var debug = require('debug')('docker-run');
+var _ = require('lodash');
 
-var noop = function() {}
+var noop = function() {};
 
-var run = function(image, opts) {
-  if (!opts) opts = {}
+var run = function(opts) {
 
-  var request = docker(opts.host, {version:'v1.14'})
-  var that = new events.EventEmitter()
-  var tty = !!opts.tty
+ opts = opts || {};
 
-  var sopts = {
-    NetworkMode: opts.net === 'auto' ? (opts.ports ? 'bridge' : 'host') : opts.net,
-    PortBindings: {},
-    Binds: [],
-    Privileged: !!opts.privileged
-  }
-
-  var copts = {
-    AttachStdin: !opts.fork,
-    AttachStdout: !opts.fork,
-    AttachStderr: !opts.fork,
-    OpenStdin: !opts.fork,
-    StdinOnce: !opts.fork,
-    Cmd: opts.argv || [],
-    Tty: tty,
-    Image: image,
+ var defaultCreate = {
+    AttachStdin: true,
+    AttachStdout: true,
+    AttachStderr: true,
+    OpenStdin: true,
+    StdinOnce: true,
+    Tty: false,
     ExposedPorts: {},
     Env: [],
     Volumes: {}
-  }
+  };
 
-  if (opts.dns) sopts.Dns = [].concat(opts.dns)
-  if (opts.entrypoint) copts.Entrypoint = [].concat(opts.entrypoint)
+  var defaultStart = {
+    PortBindings: {},
+    Binds: [],
+    Privileged: false
+  };
 
-  if (opts.ports) {
-    Object.keys(opts.ports).forEach(function(host) {
-      var container = opts.ports[host]
-      if (!/\//.test(container)) container += '/tcp'
-      copts.ExposedPorts[container] = {}
-      sopts.PortBindings[container] = [{HostPort:host+''}]
-    })
-  }
+  var sopts = _.defaults(opts.start || {}, defaultStart);
+  var copts = _.defaults(opts.create || {}, defaultCreate);
 
-  if (opts.env) {
-    Object.keys(opts.env).forEach(function(name) {
-      copts.Env.push(name+'='+opts.env[name])
-    })
-  }
 
-  if (opts.volumes) {
-    Object.keys(opts.volumes).forEach(function(host) {
-      var container = opts.volumes[host]
-      copts.Volumes[host] = {}
-      sopts.Binds.push(host+':'+container+':rw')
-    })
-  }
+  var request = docker(opts.host, {version:'v1.14'});
+  var that = new events.EventEmitter();
 
-  that.stdin = opts.fork ? null : through()
-  that.stderr = opts.fork ? null : through()
-  that.stdout = opts.fork ? null : through()
-  that.setMaxListeners(0)
+
+
+  that.stdin = copts.AttachStdin ? through() : null;
+  that.stderr = copts.AttachStdout ? through() : null;
+  that.stdout = copts.AttachStderr ? through() : null;
+  that.setMaxListeners(0);
 
   var ready = function(cb) {
     if (that.id) return cb()
@@ -85,7 +65,7 @@ var run = function(image, opts) {
   }
 
   var create = function(cb) {
-    debug('creating container')
+    debug('creating container', copts);
     var qs = {}
     if (opts.name) qs.name = opts.name
     request.post('/containers/create', {json: copts, qs:qs}, cb)
@@ -107,7 +87,7 @@ var run = function(image, opts) {
       }
     }, function(err, response) {
       if (err) return cb(err)
-      if (tty) return cb(null, stdin, response)
+      if (copts.Tty) return cb(null, stdin, response)
 
       var parser = response.pipe(raw())
       cb(null, stdin, parser.stdout, parser.stderr)
@@ -137,7 +117,7 @@ var run = function(image, opts) {
   }
 
   var start = function(id, cb) {
-    debug('starting %s', id)
+    debug('starting %s', id, sopts)
     request.post('/containers/'+id+'/start', {json: sopts}, cb)
   }
 
