@@ -39,7 +39,7 @@ Where options can be
   },
   volumes: {
     '/root': '/tmp', // expose container /root to host /tmp
-    '/root': "/tmp2:ro' // expose container /root to host /tmp2 as read only
+    '/root': '/tmp2:ro' // expose container /root to host /tmp2 as read only
   },
   env: {
     FOO: 'bar'      // set env vars
