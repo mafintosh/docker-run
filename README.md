@@ -38,7 +38,8 @@ Where options can be
     8080: 8081      // expose container 8080 to host 8081
   },
   volumes: {
-    '/root': '/tmp' // expose container /root to host /tmp
+    '/root': '/tmp', // expose container /root to host /tmp
+    '/root': '/tmp2:ro' // expose container /root to host /tmp2 as read only
   },
   env: {
     FOO: 'bar'      // set env vars
