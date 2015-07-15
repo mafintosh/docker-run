@@ -6,7 +6,10 @@ var events = require('events')
 var debug = require('debug')('docker-run')
 
 var noop = function() {}
-var endsWith = function(str, suffix) { return str.indexOf(suffix, str.length - suffix.length) !== -1; }
+
+var endsWith = function(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1
+}
 
 var run = function(image, opts) {
   if (!opts) opts = {}
@@ -58,10 +61,9 @@ var run = function(image, opts) {
     Object.keys(opts.volumes).forEach(function(host) {
       var container = opts.volumes[host]
       copts.Volumes[host] = {}
-      
-      if(!endsWith(container, ':rw') || !endsWith(container, ':ro'))
-        container += ":rw";
-        
+
+      if(!endsWith(container, ':rw') || !endsWith(container, ':ro')) container += ':rw'
+
       sopts.Binds.push(host+':'+container)
     })
   }
