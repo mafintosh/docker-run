@@ -104,7 +104,7 @@ var run = function(opts) {
   var remove = function(id, cb) {
     if (opts.remove === false) return cb()
     debug('removing %s', id)
-    request.del('/containers/'+id, cb)
+    request.del('/containers/'+id, {qs:{force:true}}, cb)
   }
 
   var stop = function(id, cb) {
