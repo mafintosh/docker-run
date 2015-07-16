@@ -101,8 +101,7 @@ var run = function(opts) {
     })
   }
 
-  var remove = function(id, cb) {
-    if (opts.remove === false) return cb()
+  that.remove = function(id, cb) {
     debug('removing %s', id)
     request.del('/containers/'+id, {qs:{force:true}}, cb)
   }
@@ -178,10 +177,12 @@ var run = function(opts) {
 
           wait(container.Id, function(err, code) {
             if (err) return onerror(container.Id, err)
-            remove(container.Id, function() {
-              that.emit('exit', code)
-              that.emit('close')
-            })
+            if (opts.remove) {
+             that.remove(container.Id, function() {
+               that.emit('exit', code)
+               that.emit('close')
+             })
+            }
           })
 
           that.emit('spawn', that.id)
