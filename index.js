@@ -101,11 +101,17 @@ var run = function(opts) {
     })
   }
 
-  that.remove = function(id, cb) {
+  var remove = function(id, cb) {
     debug('removing %s', id)
     request.del('/containers/'+id, {qs:{force:true}}, cb)
   }
 
+  that.remove = function(cb) {
+    ready(function() {
+      remove(that.id, cb)
+    })
+  }
+  
   var stop = function(id, cb) {
     debug('stopping %s', id)
     request.post('/containers/'+id+'/stop', {
