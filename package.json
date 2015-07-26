@@ -1,6 +1,6 @@
 {
   "name": "docker-run",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Start a docker image and attach to it",
   "main": "index.js",
   "dependencies": {
