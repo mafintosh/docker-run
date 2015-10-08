@@ -22,6 +22,7 @@ var run = function(image, opts) {
     NetworkMode: opts.net === 'auto' ? (opts.ports ? 'bridge' : 'host') : opts.net,
     PortBindings: {},
     Binds: [],
+    Links: [],
     Privileged: !!opts.privileged
   }
 
@@ -65,6 +66,12 @@ var run = function(image, opts) {
       if(!endsWith(container, ':rw') || !endsWith(container, ':ro')) container += ':rw'
 
       sopts.Binds.push(host+':'+container)
+    })
+  }
+
+  if (opts.links) {
+    Object.keys(opts.links).forEach(function(name) {
+      sopts.Links.push(name+':'+opts.links[name])
     })
   }
 
