@@ -41,6 +41,9 @@ Where options can be
     '/root': '/tmp', // expose container /root to host /tmp
     '/root': '/tmp2:ro' // expose container /root to host /tmp2 as read only
   },
+  links: {
+    'container-name': 'alias' // link container-name as alias
+  },
   env: {
     FOO: 'bar'      // set env vars
   },
