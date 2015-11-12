@@ -86,9 +86,9 @@ var run = function(image, opts) {
   }
 
   that.destroy =
-  that.kill = function() {
+  that.kill = function(cb) {
     ready(function() {
-      stop(that.id, noop)
+      stop(that.id, remove.bind(null, that.id, cb || noop))
     })
   }
 
@@ -185,6 +185,7 @@ var run = function(image, opts) {
 
   var onerror = function(id, err) {
     debug('%s crashed with error %s', id, err.message)
+    remove(id, noop);
     that.emit('error', err)
   }
 
@@ -199,6 +200,7 @@ var run = function(image, opts) {
 
       start(container.Id, function(err) {
         if (err) return onerror(container.Id, err)
+        that.emit('start')
 
         resizeDefault(container.Id, function(err) {
           if (err) return onerror(container.Id, err)
