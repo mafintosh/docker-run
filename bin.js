@@ -99,6 +99,10 @@ process.on('SIGINT', function() {
   child.destroy()
 })
 
+process.on('SIGQUIT', function() {
+  child.destroy()
+})
+
 process.on('SIGTERM', function() {
   child.destroy()
 })
