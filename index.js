@@ -59,9 +59,9 @@ var run = function(image, opts) {
   }
 
   if (opts.volumes) {
-    Object.keys(opts.volumes).forEach(function(host) {
-      var container = opts.volumes[host]
-      copts.Volumes[host] = {}
+    Object.keys(opts.volumes).forEach(function(container) {
+      var host = opts.volumes[container]
+      copts.Volumes[container] = {}
 
       if(!endsWith(container, ':rw') || !endsWith(container, ':ro')) container += ':rw'
 
