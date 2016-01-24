@@ -44,8 +44,8 @@ var run = function(image, opts) {
   if (opts.entrypoint) copts.Entrypoint = [].concat(opts.entrypoint)
 
   if (opts.ports) {
-    Object.keys(opts.ports).forEach(function(host) {
-      var container = opts.ports[host]
+    Object.keys(opts.ports).forEach(function(container) {
+      var host = opts.ports[container]
       if (!/\//.test(container)) container += '/tcp'
       copts.ExposedPorts[container] = {}
       sopts.PortBindings[container] = [{HostPort:host+''}]
