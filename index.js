@@ -18,7 +18,7 @@ var run = function(image, opts) {
   var that = new events.EventEmitter()
   var tty = !!opts.tty
 
-  var sopts = {
+  var HostConfig = {
     NetworkMode: opts.net === 'auto' ? (opts.ports ? 'bridge' : 'host') : opts.net,
     PortBindings: {},
     Binds: [],
@@ -37,10 +37,11 @@ var run = function(image, opts) {
     Image: image,
     ExposedPorts: {},
     Env: [],
-    Volumes: {}
+    Volumes: {},
+    HostConfig: HostConfig
   }
 
-  if (opts.dns) sopts.Dns = [].concat(opts.dns)
+  if (opts.dns) HostConfig.Dns = [].concat(opts.dns)
   if (opts.entrypoint) copts.Entrypoint = [].concat(opts.entrypoint)
 
   if (opts.ports) {
@@ -48,7 +49,7 @@ var run = function(image, opts) {
       var container = opts.ports[host]
       if (!/\//.test(container)) container += '/tcp'
       copts.ExposedPorts[container] = {}
-      sopts.PortBindings[container] = [{HostPort:host+''}]
+      HostConfig.PortBindings[container] = [{HostPort:host+''}]
     })
   }
 
@@ -65,13 +66,13 @@ var run = function(image, opts) {
 
       if(!endsWith(container, ':rw') || !endsWith(container, ':ro')) container += ':rw'
 
-      sopts.Binds.push(host+':'+container)
+      HostConfig.Binds.push(host+':'+container)
     })
   }
 
   if (opts.links) {
     Object.keys(opts.links).forEach(function(name) {
-      sopts.Links.push(name+':'+opts.links[name])
+      HostConfig.Links.push(name+':'+opts.links[name])
     })
   }
 
@@ -152,7 +153,7 @@ var run = function(image, opts) {
 
   var start = function(id, cb) {
     debug('starting %s', id)
-    request.post('/containers/'+id+'/start', {json: sopts}, cb)
+    request.post('/containers/'+id+'/start', {json: {}}, cb)
   }
 
   var wait = function(id, cb) {
