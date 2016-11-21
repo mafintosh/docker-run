@@ -38,7 +38,7 @@ var run = function(image, opts) {
     ExposedPorts: {},
     Env: [],
     Volumes: {},
-	HostConfig: HostConfig
+    HostConfig: HostConfig
   }
 
   if (opts.dns) HostConfig.Dns = [].concat(opts.dns)
