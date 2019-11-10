@@ -64,7 +64,7 @@ var run = function(image, opts) {
       var container = opts.volumes[host]
       copts.Volumes[host] = {}
 
-      if(!endsWith(container, ':rw') || !endsWith(container, ':ro')) container += ':rw'
+      if(!endsWith(container, ':rw') && !endsWith(container, ':ro')) container += ':rw'
 
       HostConfig.Binds.push(host+':'+container)
     })
